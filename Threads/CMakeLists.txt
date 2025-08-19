@@ -3,4 +3,6 @@ project(Threads)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(Threads main.cpp)
+add_executable(Threads main.cpp
+        SumadorDeNumeros.cpp
+        SumadorDeNumeros.h)
