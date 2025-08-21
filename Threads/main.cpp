@@ -3,27 +3,36 @@
 #include <thread>
 #include <future>
 #include <algorithm>
+#include <ranges>
 #include "SumadorDeNumeros.h"
 
+//Uso explicito de Threads
+//Versión anterior manejaba hilos con la función async simpllificando la ejecicion en una linea
+
 int main() {
+    // Vector para almacenar los objetos thread
     std::vector<std::thread> hilos;
+
+    // Vector para obtener los resultados de forma asíncrona
     std::vector<std::future<int>> futuros;
 
-    // Se crea una instancia de SumadorDeNumeros para cada hilo
-    // para evitar problemas de concurrencia al usar el generador de números aleatorios
+    // Crear una instancia de SumadorDeNumeros para cada hilo
     std::vector<SumadorDeNumeros> sumadores(10);
 
-    // Crear 10 hilos para sumar números
+    // Crear 10 hilos explícitamente
     for (int i = 0; i < 10; ++i) {
+        // Se crea un objeto promise para cada hilo
         std::promise<int> promesa;
         futuros.push_back(promesa.get_future());
+
+        // El hilo ejecuta la función y guarda el resultado en la promesa
         hilos.emplace_back([&sumadores, i, p = std::move(promesa)]() mutable {
             int resultado = sumadores[i].sumarNumeros();
             p.set_value(resultado);
         });
     }
 
-    // Esperar a que todos los hilos terminen
+    // Esperar a que todos los hilos terminen su ejecución
     for (std::thread& hilo : hilos) {
         if (hilo.joinable()) {
             hilo.join();
@@ -40,7 +49,7 @@ int main() {
 
     // Encontrar y mostrar el hilo con la puntuación más alta
     if (!resultados.empty()) {
-        auto maxElemento = std::max_element(resultados.begin(), resultados.end());
+        auto maxElemento = std::ranges::max_element(resultados);
         size_t indiceMax = std::distance(resultados.begin(), maxElemento);
         std::cout << "\nEl hilo con la puntuación más alta es el hilo " << indiceMax + 1 << " con una suma de: " << *maxElemento << std::endl;
     }
